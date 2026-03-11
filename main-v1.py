@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException, Query
+import time
+from fastapi import FastAPI, HTTPException, Query, status
+from fastapi.responses import JSONResponse
 import yfinance as yf
 
 # Initialize the FastAPI app
@@ -7,6 +9,28 @@ app = FastAPI(
     description="An API to fetch historical stock data using yfinance."
 )
 print("running v1...")
+
+
+
+@app.get(
+    "/health", 
+    tags=["Monitoring"], 
+    summary="Perform a Health Check",
+    response_description="Return HTTP Status Code 200 (OK)"
+)
+async def health_check():
+    """
+    Endpoint to check the health and uptime of the API.
+    """
+    
+    health_data = {
+        "status": "healthy",
+        "timestamp": time.time(),
+        "version": "1.0.0"
+    }
+    
+    return JSONResponse(status_code=status.HTTP_200_OK, content=health_data)
+
 
 @app.get("/api/stock/{ticker}")
 async def get_stock_history(
