@@ -1,0 +1,19 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments (where your pip packages are installed)
+venv/
+env/
+.venv/
+
+# Environment variables (keeps your API keys and secrets safe)
+.env
+
+# IDE and OS specific files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
