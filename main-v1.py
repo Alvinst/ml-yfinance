@@ -1,6 +1,7 @@
 import time
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, HTTPException, Query, status, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 import logging
@@ -35,7 +36,37 @@ app = FastAPI(
     description="An API to fetch historical stock data using yfinance."
 )
 
-print("running v1.2...")
+# 1. CORS Middleware (Essential if your frontend is on a different port/domain)
+app.add_middleware(
+    CORSMiddleware,
+    #allow_origins=["http://localhost:3000"], # Replace with your actual frontend URL
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
+# 2. Custom Security Headers Middleware
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        # Prevents the browser from "sniffing" the content type (prevents XSS)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        # Prevents your site from being put in an iframe (prevents Clickjacking)
+        response.headers["X-Frame-Options"] = "DENY"
+        # Enables the browser's built-in XSS protection
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        # Forces the use of HTTPS (only use if you have an SSL certificate)
+        #response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        # Controls how much referrer information is shared
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+print("running v1.3...")
+
+@app.get("/", response_class=PlainTextResponse)
+async def root():
+    return "Hello World"
 
 
 @app.get("/health", response_class=PlainTextResponse)
