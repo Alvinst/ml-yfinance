@@ -1,5 +1,5 @@
 import time
-from fastapi import FastAPI, HTTPException, Query, status, Request
+from fastapi import FastAPI, HTTPException, Query, status, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -62,7 +62,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 
-print("running v1.3...")
+print("running v1.4...")
 
 @app.get("/", response_class=PlainTextResponse)
 async def root():
@@ -104,14 +104,20 @@ async def get_stock_history(
         
         # Convert the Pandas DataFrame to a dictionary
         data_dict = history_df.to_dict(orient="index")
-        
-        return {
-            "success": True,
-            "ticker": ticker.upper(),
-            "period": period,
-            "rows": len(data_dict),
-            "data": data_dict
-        }
+
+        return JSONResponse(
+            content=data_dict,
+#            media_type="text/csv",
+            headers={}
+        )
+
+#        return {
+#            "success": True,
+#            "ticker": ticker.upper(),
+#            "period": period,
+#            "rows": len(data_dict),
+#            "data": data_dict
+#        }
         
     except Exception as e:
         # Catch any unexpected errors from yfinance

@@ -8,4 +8,4 @@ Highlights
   2. use uvicon that offers simple http capability.
   3. systemd enabled script that simplifies server maintenance
   4. logrotate enabled
-  5. fail2ban enabled (TBD)
+  5. fail2ban enabled (testing since 13-Mar-26)
