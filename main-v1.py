@@ -1,35 +1,46 @@
 import time
 from fastapi import FastAPI, HTTPException, Query, status
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.responses import JSONResponse, PlainTextResponse
+import logging
+import uvicorn
 import yfinance as yf
+
+
+# Standardized format for Fail2ban to read easily
+LOG_CONFIG = {
+    "version": 1,
+    "formatters": {
+        "access": {
+            "()": "uvicorn.logging.AccessFormatter",
+            "fmt": '%(client_addr)s - "%(request_line)s" %(status_code)s',
+        },
+    },
+    "handlers": {
+        "access": {
+            "class": "logging.FileHandler",
+            "filename": "/var/log/uvicorn/access.log",
+            "formatter": "access",
+        },
+    },
+    "loggers": {
+        "uvicorn.access": {"handlers": ["access"], "level": "INFO", "propagate": False},
+    },
+}
 
 # Initialize the FastAPI app
 app = FastAPI(
     title="Stock History API",
     description="An API to fetch historical stock data using yfinance."
 )
-print("running v1...")
+
+print("running v1.2...")
 
 
-
-@app.get(
-    "/health", 
-    tags=["Monitoring"], 
-    summary="Perform a Health Check",
-    response_description="Return HTTP Status Code 200 (OK)"
-)
+@app.get("/health", response_class=PlainTextResponse)
 async def health_check():
-    """
-    Endpoint to check the health and uptime of the API.
-    """
-    
-    health_data = {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "version": "1.0.0"
-    }
-    
-    return JSONResponse(status_code=status.HTTP_200_OK, content=health_data)
+    return "OK"
 
 
 @app.get("/api/stock/{ticker}")
@@ -74,3 +85,18 @@ async def get_stock_history(
     except Exception as e:
         # Catch any unexpected errors from yfinance
         raise HTTPException(status_code=500, detail=str(e))
+
+
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
+# --- 3. Main Execution Block ---
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        server_header=False,  # Disables "Server: uvicorn"
+        date_header=False,    # Disables "Date" header for extra stealth
+        proxy_headers=True   # Important for getting real IPs if using a proxy
+    )
+
