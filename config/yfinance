@@ -1,0 +1,14 @@
+/var/log/uvicorn/*.log {
+    daily
+    missingok
+    rotate 7
+    compress
+    delaycompress
+    notifempty
+    su azureuser logs
+    create 0664 azureuser logs
+    sharedscripts
+    postrotate
+        /usr/bin/systemctl reload fail2ban > /dev/null 2>&1 || true
+    endscript
+}
