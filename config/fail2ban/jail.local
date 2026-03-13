@@ -1,0 +1,13 @@
+[fastapi-jail]
+enabled  = true
+port     = 8000,http,https
+filter   = fastapi-filter
+# Path to the custom folder you created
+logpath  = /var/log/my-yfinance-app/access.log
+# If they trigger 5 errors within 2 minutes...
+maxretry = 5
+findtime = 120
+# ...ban them for 1 hour
+bantime  = 3600
+ignoreip = 127.0.0.1/8 ::1
+
